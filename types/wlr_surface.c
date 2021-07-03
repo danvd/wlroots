@@ -397,6 +397,13 @@ static void surface_apply_damage(struct wlr_surface *surface) {
 		wlr_buffer_unlock(&surface->buffer->base);
 	}
 	surface->buffer = buffer;
+	if (surface->is_eglstream) {
+		// Let eglstream to do damage tracking
+		pixman_region32_union_rect(
+			&surface->buffer_damage, &surface->buffer_damage, 0, 0,
+			buffer->texture->width, buffer->texture->height);
+
+	}
 }
 
 static void surface_update_opaque_region(struct wlr_surface *surface) {
@@ -782,6 +789,8 @@ struct wlr_surface *surface_create(struct wl_client *client,
 
 	wl_signal_add(&renderer->events.destroy, &surface->renderer_destroy);
 	surface->renderer_destroy.notify = surface_handle_renderer_destroy;
+
+	surface->is_eglstream = false;
 
 	return surface;
 }
